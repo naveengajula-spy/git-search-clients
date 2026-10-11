@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Search Client</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="w-full max-w-2xl space-y-6">
+        <!-- App Header & Mode Toggle -->
+        <header class="flex justify-between items-center bg-slate-800 p-4 rounded-xl border border-slate-700">
+            <h1 class="text-xl font-bold tracking-wider">GitHub Search Client</h1>
+            <button 
+                id="mode-toggle-btn" 
+                class="bg-slate-700 hover:bg-slate-600 text-xs px-3 py-1.5 rounded-lg font-medium transition-colors border border-slate-600"
+            >
+                ⚔️ Enable Battle Mode
+            </button>
+        </header>
+
+        <!-- Single Search Bar (Default Mode) -->
+        <div id="single-search-section" class="relative flex items-center">
+            <input 
+                type="text" 
+                id="search-input" 
+                placeholder="Search GitHub username..." 
+                class="w-full bg-slate-800 text-white px-4 py-4 rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-400 text-sm"
+            >
+            <button 
+                id="search-btn" 
+                class="absolute right-2 bg-blue-600 hover:bg-blue-700 px-6 py-2.5 rounded-lg font-medium transition-colors text-sm"
+            >
+                Search
+            </button>
+        </div>
+
+        <!-- Battle Mode Inputs (Hidden by default) -->
+        <div id="battle-search-section" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-800 p-4 rounded-xl border border-slate-700">
+            <input 
+                type="text" 
+                id="battle-input-1" 
+                placeholder="Player 1 username..." 
+                class="w-full bg-slate-900 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 placeholder-slate-400 text-sm border border-slate-700"
+            >
+            <input 
+                type="text" 
+                id="battle-input-2" 
+                placeholder="Player 2 username..." 
+                class="w-full bg-slate-900 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 placeholder-slate-400 text-sm border border-slate-700"
+            >
+            <button 
+                id="battle-btn" 
+                class="md:col-span-2 bg-emerald-600 hover:bg-emerald-700 py-3 rounded-lg font-medium transition-colors text-sm shadow-md"
+            >
+                🔥 Start Battle (Promise.all)
+            </button>
+        </div>
+
+        <!-- Error State -->
+        <div id="error-msg" class="hidden bg-red-500/10 border border-red-500 text-red-400 p-3 rounded-lg text-center text-sm">
+            User not found or error fetching data. Please check usernames!
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-spinner" class="hidden text-center py-6">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
+            <p class="text-sm text-slate-400 mt-2">Fetching developer data...</p>
+        </div>
+
+        <!-- Single Profile Card Component (Default Mode) -->
+        <main id="profile-card" class="hidden bg-slate-800 p-6 rounded-2xl shadow-xl space-y-6 border border-slate-700">
+            <div class="flex items-center space-x-4">
+                <img id="profile-avatar" src="" alt="Avatar" class="w-20 h-20 rounded-full border-2 border-blue-500">
+                <div>
+                    <h2 id="profile-name" class="text-xl font-bold text-white"></h2>
+                    <a id="profile-url" href="#" target="_blank" class="text-blue-400 text-sm hover:underline">@username</a>
+                    <p id="profile-joined" class="text-xs text-slate-400 mt-1"></p>
+                </div>
+            </div>
+            <p id="profile-bio" class="text-slate-300 text-sm leading-relaxed">
+                Bio goes here...
+            </p>
+
+            <!-- Repositories Section -->
+            <div id="repos-container" class="mt-6 pt-6 border-t border-slate-700 hidden">
+                <h3 class="text-sm font-semibold text-slate-300 mb-3">Top 5 Latest Repositories</h3>
+                <div id="repos-list" class="space-y-2"></div>
+            </div>
+        </main>
+
+        <!-- Battle Results Grid (Hidden by default) -->
+        <div id="battle-results" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Player 1 Card -->
+            <div id="player-1-card" class="bg-slate-800 p-5 rounded-2xl shadow-xl space-y-4 border border-slate-700 relative">
+                <span id="player-1-badge" class="absolute top-4 right-4 text-xs font-bold px-2.5 py-1 rounded-full hidden"></span>
+                <div class="flex items-center space-x-3">
+                    <img id="p1-avatar" src="" class="w-14 h-14 rounded-full border-2 border-slate-600">
+                    <div>
+                        <h3 id="p1-name" class="font-bold text-white text-base"></h3>
+                        <a id="p1-url" href="#" target="_blank" class="text-blue-400 text-xs hover:underline"></a>
+                    </div>
+                </div>
+                <div class="text-xs text-slate-300 space-y-1 pt-2 border-t border-slate-700">
+                    <p>Total Public Repos: <span id="p1-repos" class="font-semibold text-white"></span></p>
+                    <p>Total Stars Earned: <span id="p1-stars" class="font-semibold text-amber-400"></span> ⭐</p>
+                </div>
+            </div>
+
+            <!-- Player 2 Card -->
+            <div id="player-2-card" class="bg-slate-800 p-5 rounded-2xl shadow-xl space-y-4 border border-slate-700 relative">
+                <span id="player-2-badge" class="absolute top-4 right-4 text-xs font-bold px-2.5 py-1 rounded-full hidden"></span>
+                <div class="flex items-center space-x-3">
+                    <img id="p2-avatar" src="" class="w-14 h-14 rounded-full border-2 border-slate-600">
+                    <div>
+                        <h3 id="p2-name" class="font-bold text-white text-base"></h3>
+                        <a id="p2-url" href="#" target="_blank" class="text-blue-400 text-xs hover:underline"></a>
+                    </div>
+                </div>
+                <div class="text-xs text-slate-300 space-y-1 pt-2 border-t border-slate-700">
+                    <p>Total Public Repos: <span id="p2-repos" class="font-semibold text-white"></span></p>
+                    <p>Total Stars Earned: <span id="p2-stars" class="font-semibold text-amber-400"></span> ⭐</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
